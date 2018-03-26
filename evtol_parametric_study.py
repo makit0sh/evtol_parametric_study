@@ -6,6 +6,7 @@ import numpy as np
 from scipy.optimize import newton
 import matplotlib.pyplot as plt
 
+from copy import copy
 
 ## parameters ----------------------------------------------------------------------------------------------------------
 CONF = {
@@ -48,33 +49,29 @@ CONF = {
     }
 
 FRONT_FAN_CONF = {
-        'T_need': CONF['MTO'] * 9.8,
         'loading_ratio': 1/3,
         'rho': 1.225,
         'n': 6,
         'b': 12,
-        'R': 0.2,
+        'R': 0.3,
         'c': 0.04,
         'theta_0': 60,
         'theta_t': 20,
         'a': 5.73,
-        'Omega': 10000,
         'Cd': 0.0125,
         'B': 0.97,
         }
 
 REAR_FAN_CONF = {
-        'T_need': CONF['MTO'] * 9.8,
         'loading_ratio': 2/3,
         'rho': 1.225,
         'n': 12,
         'b': 12,
-        'R': 0.2,
+        'R': 0.3,
         'c': 0.04,
         'theta_0': 60,
         'theta_t': 20,
         'a': 5.73,
-        'Omega': 10000,
         'Cd': 0.0125,
         'B': 0.97,
         }
@@ -247,16 +244,18 @@ def aircraft_mode(conf):
     # W, 必要パワー
     P = D*conf['V_c']
     return {
-            'P': P
+            'D': D,
+            'P': P,
             }
 
-
-def hover_fan(conf):
-    """ホバリング時のファンの挙動
+def fan(conf, T_need_all, V_c=0):
+    """飛行時のファンの挙動
     Args:
-        conf (dict): 条件 {T_need: 望む推力[N], rho: 空気密度[kg/m3], n: ファンの個数, b: ブレード枚数, R: ブレード半径[m], c: ブレード翼弦長[m], theta_0: ルートピッチ角[deg], theta_t: ブレード端ピッチ角[deg], a: ブレード揚力傾斜[/rad], Omega: 回転速度[rpm], Cd: 抗力係数, B: 翼端損失因子}
+        conf (dict): 条件 {loading_ratio: T_needのうち対象のファン群の担当比率, rho: 空気密度[kg/m3], n: 対象のファン群のファンの個数, b: ブレード枚数, R: ブレード半径[m], c: ブレード翼弦長[m], theta_0: ルートピッチ角[deg], theta_t: ブレード端ピッチ角[deg], a: ブレード揚力傾斜[/rad], Cd: 抗力係数, B: 翼端損失因子}
+        T_need_all (float): N, 全機で望む推力
+        V_c=0 (float): m/s, 巡航速度, 0の時ホバリング
     Returns:
-        {T:推力[N], Q:トルク[Nm], P:パワー[W]}
+        {Omega: 回転速度[rpm], T:推力[N], Q:トルク[Nm], P:パワー[W]}
     """
     # m^2, ローター円盤面積
     S = np.pi * conf['R']**2
@@ -264,9 +263,11 @@ def hover_fan(conf):
     sigma = conf['b']*conf['c']/np.pi/conf['R']
 
     # ファン1個が出す必要がある推力
-    T_need = conf['T_need'] * conf['loading_ratio'] / conf['n']
+    T_need = T_need_all * conf['loading_ratio'] / conf['n']
     # m/s, 吹き下ろし速度 (ホバリング時), ヘリコプタ入門 4.1
-    v_0 = np.sqrt(T_need/2/conf['rho']/np.pi/conf['R']**2)
+    #v_0 = np.sqrt(T_need/2/conf['rho']/np.pi/conf['R']**2)
+    # m/s, 吹き下ろし速度, 航空工学1 4.15
+    v = -V_c/2 + np.sqrt((V_c/2)**2 + (T_need/(2*conf['rho']*S)))
 
     # 角速度
     Omega = np.arange(1000, 10000, 10)  # rpm
@@ -278,9 +279,9 @@ def hover_fan(conf):
     q = conf['rho'] * S * v_t**2
 
     # 流入比, ヘリコプタ入門 5.8
-    Lambda = v_0/omega/conf['R']
+    Lambda = v/omega/conf['R']
     # rad, 吹き下ろし角
-    phi_t = -np.arctan(v_0/omega/conf['R'])
+    phi_t = -np.arctan(v/omega/conf['R'])
 
     # 推力係数, 翼素理論, 航空工学I 4.127a
     C_T_guess1 = conf['a']*sigma/2*(conf['B']**3 *np.deg2rad(conf['theta_0'])/3 - conf['B']**4 *np.deg2rad(conf['theta_t'])/4 - conf['B']**2 * Lambda/2) - sigma*conf['Cd']*Lambda/4
@@ -325,9 +326,14 @@ def hover_fan(conf):
 
 def main():
     print(aircraft_mode(CONF))
-    print(hover_fan(FRONT_FAN_CONF))
-    print(hover_fan(REAR_FAN_CONF))
-    return
+    print(fan(FRONT_FAN_CONF, CONF['MTO']*9.8))
+    print(fan(REAR_FAN_CONF, CONF['MTO']*9.8))
+    #print(fan(FRONT_FAN_CONF, aircraft_mode(CONF)['D'], V_c=CONF['V_c']))
+    #ファンの数こんなに少なくて巡航できるんだろうか謎
+    REAR_FAN_CONF_CRUISE = copy(REAR_FAN_CONF)
+    REAR_FAN_CONF_CRUISE['loading_ratio'] = 1
+    REAR_FAN_CONF_CRUISE['n'] = 4
+    print(fan(REAR_FAN_CONF_CRUISE, aircraft_mode(CONF)['D'], V_c=CONF['V_c']))
 
 
 ## execution -----------------------------------------------------------------------------------------------------------
