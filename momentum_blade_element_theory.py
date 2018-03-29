@@ -44,11 +44,16 @@ def cruise_fan(conf, V, omega):
     # プロペラ効率
     eta = J * CT / CP
 
+    T = CT * conf['rho']*n**2*D**4
+    Q = CQ * conf['rho']*n**2*D**5
+
     return {
             'J': J,
+            'T': T,
+            'Q': Q,
             'CT': CT,
             'CQ': CQ,
-            'CT': CT,
+            'CP': CP,
             'eta': eta,
             }
 

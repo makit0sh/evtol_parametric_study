@@ -335,10 +335,17 @@ def main():
     #ファンの数こんなに少なくて巡航できるんだろうか謎
     REAR_FAN_CONF_CRUISE = copy(REAR_FAN_CONF)
     REAR_FAN_CONF_CRUISE['loading_ratio'] = 1
-    REAR_FAN_CONF_CRUISE['n'] = 4
+    REAR_FAN_CONF_CRUISE['n'] = 2
     print(hover_fan(REAR_FAN_CONF_CRUISE, aircraft_mode(CONF)['D'], V_c=CONF['V_c']))
 
-
+    omega = np.arange(500, 10000, 10)
+    cruise_fan_results = [momentum_blade_element_theory.cruise_fan(REAR_FAN_CONF_CRUISE, CONF['V_c'], x) for x in omega ]
+    T_list = np.array([ res['T'] for res in cruise_fan_results] )
+    err_min_idx = np.argmin(abs(T_list-aircraft_mode(CONF)['D']/REAR_FAN_CONF_CRUISE['n']))
+    omega = omega[err_min_idx]
+    eta = cruise_fan_results[err_min_idx]['eta']
+    Q = cruise_fan_results[err_min_idx]['Q']
+    print(omega, eta, Q*omega*REAR_FAN_CONF_CRUISE['n'])
 
 ## execution -----------------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
