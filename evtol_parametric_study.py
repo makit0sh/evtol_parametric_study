@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 
 from copy import copy
 
+import momentum_blade_element_theory
+
 ## parameters ----------------------------------------------------------------------------------------------------------
 CONF = {
         # 概要
@@ -248,8 +250,8 @@ def aircraft_mode(conf):
             'P': P,
             }
 
-def fan(conf, T_need_all, V_c=0):
-    """飛行時のファンの挙動
+def hover_fan(conf, T_need_all, V_c=0):
+    """ホバリング時のファンの挙動
     Args:
         conf (dict): 条件 {loading_ratio: T_needのうち対象のファン群の担当比率, rho: 空気密度[kg/m3], n: 対象のファン群のファンの個数, b: ブレード枚数, R: ブレード半径[m], c: ブレード翼弦長[m], theta_0: ルートピッチ角[deg], theta_t: ブレード端ピッチ角[deg], a: ブレード揚力傾斜[/rad], Cd: 抗力係数, B: 翼端損失因子}
         T_need_all (float): N, 全機で望む推力
@@ -291,6 +293,7 @@ def fan(conf, T_need_all, V_c=0):
     # 推力係数, Newton法, ヘリコプタ入門 4.29
     #C_T = newton(lambda x: x-conf['a']*sigma/4*(conf['theta_t']-np.sqrt(x/2)), C_T_guess1)
 
+    # 必要推力からomega を求める
     C_T_guess = C_T_guess1
     T_guess = q * C_T_guess
 
@@ -326,14 +329,15 @@ def fan(conf, T_need_all, V_c=0):
 
 def main():
     print(aircraft_mode(CONF))
-    print(fan(FRONT_FAN_CONF, CONF['MTO']*9.8))
-    print(fan(REAR_FAN_CONF, CONF['MTO']*9.8))
+    print(hover_fan(FRONT_FAN_CONF, CONF['MTO']*9.8))
+    print(hover_fan(REAR_FAN_CONF, CONF['MTO']*9.8))
     #print(fan(FRONT_FAN_CONF, aircraft_mode(CONF)['D'], V_c=CONF['V_c']))
     #ファンの数こんなに少なくて巡航できるんだろうか謎
     REAR_FAN_CONF_CRUISE = copy(REAR_FAN_CONF)
     REAR_FAN_CONF_CRUISE['loading_ratio'] = 1
     REAR_FAN_CONF_CRUISE['n'] = 4
-    print(fan(REAR_FAN_CONF_CRUISE, aircraft_mode(CONF)['D'], V_c=CONF['V_c']))
+    print(hover_fan(REAR_FAN_CONF_CRUISE, aircraft_mode(CONF)['D'], V_c=CONF['V_c']))
+
 
 
 ## execution -----------------------------------------------------------------------------------------------------------
