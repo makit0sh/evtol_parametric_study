@@ -119,7 +119,7 @@ def hover_fan_specialty():
                 P_list_temp.append(P_all)
             R = np.array(R_list_temp)
             P = np.array(P_list_temp)
-            plt.plot(R, P, #color=color, 
+            plt.plot(R, P,
                     color = cm.hsv(1/len(wto_list)*i+0.1/len(Omega_list)*j+0.01/len(n_fan_list)*k),
                     marker="o", linestyle="solid", label="WTO={}, Omega={}, n={}".format(wto, Omega, n))
     plt.grid()
@@ -127,10 +127,9 @@ def hover_fan_specialty():
     plt.title("power tokusei when hovering")
     plt.xlabel("fan radius [m]")
     plt.ylabel("gross power [kW]")
-    #plt.legend()
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0, fontsize=10)
-    plt.subplots_adjust(right=0.65)
-    plt.savefig("hover_specialty_sample.png")
+    plt.subplots_adjust(right=0.6)
+    #plt.savefig("hover_specialty_sample.png")
     plt.show()
 
 
