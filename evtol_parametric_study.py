@@ -335,7 +335,7 @@ def main():
     #ファンの数こんなに少なくて巡航できるんだろうか謎
     REAR_FAN_CONF_CRUISE = copy(REAR_FAN_CONF)
     REAR_FAN_CONF_CRUISE['loading_ratio'] = 1
-    REAR_FAN_CONF_CRUISE['n'] = 2
+    REAR_FAN_CONF_CRUISE['n'] = 4
     print(hover_fan(REAR_FAN_CONF_CRUISE, aircraft_mode(CONF)['D'], V_c=CONF['V_c']))
 
     omega = np.arange(500, 10000, 10)

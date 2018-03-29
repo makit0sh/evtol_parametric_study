@@ -3,7 +3,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def cruise_fan(conf, V, omega):
+def cruise_fan(conf, V, Omega):
+    ''' 運動量翼素理論による水平巡航時のファンの挙動
+    Args:
+        conf (dict): 機体形状条件
+        V (float): m/s, 巡航速度
+        Omega (float): rpm, プロペラ回転数
+    Returns:
+        (dict): 結果
+    '''
+
+    # rad/s にrpmを変換
+    omega = Omega*np.pi/30
     # ソリディティ
     sigma = conf['b']*conf['c']/np.pi/conf['R']
     # m, プロペラ直径
